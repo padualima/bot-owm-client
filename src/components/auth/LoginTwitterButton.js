@@ -9,6 +9,7 @@ const LoginTwitterButton = () => {
       const authorizeUrl = await ApiCall.getTwitterAuthorizeUrl();
 
       window.location.href = authorizeUrl;
+      // window.open(await ApiCall.getTwitterAuthorizeUrl(), '_blank', 'width=600, height=600');
     } catch (error) {
       console.error('Error handling Twitter login:', error);
     }
