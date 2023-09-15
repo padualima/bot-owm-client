@@ -10,9 +10,10 @@ import Button from '@mui/material/Button';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
-import InputMask from 'react-input-mask';
 import CustomSelect from '../components/forms/CustomSelect';
-
+import Checkbox from '@mui/material/Checkbox';
+import TimePicker from '../components/forms/TimePicker';
+import DateInput from '../components/forms/DateInput';
 
 const Root = styled('div')({
   display: 'flex',
@@ -31,8 +32,14 @@ function Dashboard() {
 
   const isSmallScreen = theme.breakpoints.down('sm'); // Verifique se a tela é pequena
 
+  const isAuthenticated = !!localStorage.getItem('accessTokenStorage');
+
   const handleLogout = () => {
-    window.location.href = 'http://localhost:3001';
+    if (isAuthenticated) {
+      localStorage.removeItem('accessTokenStorage');
+
+      window.location.href = 'http://localhost:3001';
+    }
   };
 
   const styles = {
@@ -54,12 +61,13 @@ function Dashboard() {
     setIsModalOpen(false);
   };
 
+  // handle checkbox
+  const [isScheduleChecked, setIsScheduleChecked] = useState(false);
+  const [showScheduleCheckbox, setShowScheduleCheckbox] = useState(false);
 
-  // handle date input mask
-  const [maskedDate, setMaskedDate] = useState('');
-
-  const handleMaskedDateChange = (event) => {
-    setMaskedDate(event.target.value);
+  const handleScheduleCheckboxChange = (event) => {
+    setIsScheduleChecked(event.target.checked);
+    setShowScheduleCheckbox(event.target.checked); // Mostrar o Select quando o checkbox for marcado
   };
 
   return (
@@ -132,22 +140,6 @@ function Dashboard() {
                   <TableCell>Jane Smith</TableCell>
                   <TableCell>25</TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
@@ -161,21 +153,9 @@ function Dashboard() {
 
       <Modal open={isModalOpen} onClose={handleCloseModal}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, backgroundColor: 'white', padding: 20 }}>
-          <Typography variant="h6">Adicionar Publicação</Typography>
+          <Typography variant="h6">Nova Publicação</Typography>
           <form>
             <TextField style={{ margin: '5px 0' }} label="Localidade" fullWidth />
-
-            <InputMask mask="99/99/9999" value={maskedDate} onChange={handleMaskedDateChange} maskChar={null}>
-              {(inputProps) => (
-                <TextField
-                  {...inputProps}
-                  style={{ margin: '5px 0' }}
-                  label="Data de Publicação"
-                  fullWidth
-                  placeholder="dd/mm/aaaa"
-                />
-              )}
-            </InputMask>
 
             <div>
               <CustomSelect
@@ -186,58 +166,62 @@ function Dashboard() {
                       label: "Nunca",
                     },
                     {
+                      value: "a-cada-30-minutos",
+                      label: "A cada 30 minutos",
+                    },
+                    {
                       value: "a-cada-hora",
                       label: "A cada Hora",
                     },
                     {
-                      value: "diariamente",
-                      label: "Diariamente",
+                      value: "a-cada-2-horas",
+                      label: "A cada 2 Horas",
                     },
                     {
-                      value: "dias-da-semana",
-                      label: "Dias da Semana",
+                      value: "a-cada-3-horas",
+                      label: "A cada 3 Horas",
                     },
                     {
-                      value: "fins-de-semana",
-                      label: "Fins de Semana",
+                      value: "a-cada-5-horas",
+                      label: "A cada 5 Horas",
                     },
                     {
-                      value: "semanalmente",
-                      label: "Semanalmente",
+                      value: "a-cada-10-horas",
+                      label: "A cada 10 Horas",
                     },
                     {
-                      value: "quinzenalmente",
-                      label: "Quinzenalmente",
-                    },
-                    {
-                      value: "mensalmente",
-                      label: "Mensalmente",
-                    },
-                    {
-                      value: "a-cada-3-meses",
-                      label: "A Cada 3 Meses",
-                    },
-                    {
-                      value: "a-cada-6-meses",
-                      label: "A cada 6 Meses",
-                    },
-                    {
-                      value: "anualmente",
-                      label: "Anualmente",
-                    },
+                      value: "a-cada-12-horas",
+                      label: "A cada 12 Horas",
+                    }
                   ]
                 }
                 placeholder="Repetir"
               />
             </div>
 
+            <label htmlFor="scheduleCheckbox">
+              Agendar?
+              <Checkbox
+                id="scheduleCheckbox"
+                checked={isScheduleChecked}
+                onChange={handleScheduleCheckboxChange}
+                color="primary"
+              />
+            </label>
+
+            {showScheduleCheckbox && (
+              <div style={{marginBottom: '5px'}}>
+                <DateInput />
+                <TimePicker />
+              </div>
+            )}
+
             <Button style={{ margin: '5px 0' }} variant="contained" color="primary" fullWidth>
-              Adicionar
+              Salvar
             </Button>
           </form>
         </div>
       </Modal>
-
     </Root>
   );
 }

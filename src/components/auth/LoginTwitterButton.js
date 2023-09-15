@@ -19,15 +19,7 @@ function LoginTwitterButton() {
         if (accessTokenStorage) {
           clearInterval(checkAuthenticationCompletion);
 
-          // Redireciona para a página de dashboard com o token
-          // const dashboardUrl = `/dashboard?token=${accessTokenStorage}`;
-          const dashboardUrl = `/dashboard`;
-
-          // document.cookie = `accessToken=${accessTokenStorage};path=/`;
-
-          window.location.href = dashboardUrl;
-          // Limpa o item no localStorage para evitar repetições
-          // localStorage.removeItem('accessTokenStorage');
+          window.location.href = `/dashboard`;
         }
       }, 1000);
     } catch (error) {
