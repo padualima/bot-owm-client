@@ -30,22 +30,36 @@ const ApiCall = {
     }
   },
 
-  postCreateTweet: async ({ token, formData }) => {
+  getTweets: async ({ api_key }) => {
     try {
-      const url = `${owmBotApiUrl}//tweets`
-      const bearerToken = token
-      const params = `token=${bearerToken}`
+      const url = `${owmBotApiUrl}/tweets`
+      const headers = {
+        'Authorization': `Bearer ${api_key}`,
+        'Content-Type': 'application/json',
+      };
+      const response = await axios.get(url, { headers: headers });
+
+      return response.data.data;
+    } catch (error) {
+      console.error('Error list Tweets:', error);
+      return null;
+    }
+  },
+
+  postCreateTweet: async ({ api_key, formData }) => {
+    try {
+      const url = `${owmBotApiUrl}/tweets`
+      const headers = {
+        'Authorization': `Bearer ${api_key}`,
+        'Content-Type': 'application/json',
+      };
       const body = {
         location: {
           name: formData.location_name
         }
       }
 
-      const response = await axios.post(`${url}?${params}`, JSON.stringify(body), {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await axios.post(url, JSON.stringify(body), { headers: headers });
 
       return response.data.tweets.text;
     } catch (error) {

@@ -78,8 +78,6 @@ function Dashboard() {
     }
   );
 
-  const [apiResult, setApiResult] = useState(null);
-
   const handleFormChange = (event) => {
     const { name, value } = event.target;
 
@@ -100,40 +98,38 @@ function Dashboard() {
     try {
       setIsModalOpen(false);
 
-      const token = localStorage.getItem('accessTokenStorage')
-      const tweet = await ApiCall.postCreateTweet({ token, formData });
+      const api_key = localStorage.getItem('accessTokenStorage')
+      await ApiCall.postCreateTweet({ api_key, formData });
 
-      setApiResult(tweet);
+      const response = await ApiCall.getTweets({ api_key });
+      setListTweets(response);
+
     } catch (error) {
       console.error('Erro ao chamar a API:', error);
     }
   };
 
-  const [listTweets, setTweets] = useState([]);
+  const [listTweets, setListTweets] = useState([]);
 
   useEffect(() => {
-    // Se você quiser realizar alguma ação após a chamada à API, você pode fazer aqui
-    // Por exemplo, exibir uma mensagem de sucesso ou atualizar a lista de publicações
-    const tweet_dummy = {
-      text: "Tempo Atual em: Teresina, BR (15/09 às 22:40h)\n  🌙 30ºC e céu limpo",
-      published_at: new Date().toLocaleString()
+    const fetchDataFromApi = async () => {
+      try {
+        const api_key = localStorage.getItem('accessTokenStorage');
+        const response = await ApiCall.getTweets({ api_key }); // Use await para aguardar a resposta
+        // Atualize o estado listTweets com os dados da resposta
+        if (response) {
+          setListTweets(response);
+        } else {
+          console.error('Resposta da API não contém dados válidos:', response);
+        } // Assumindo que a resposta contém um campo "data" com os dados dos tweets
+      } catch (error) {
+        console.error('Erro ao buscar tweets:', error);
+      }
     };
 
-    // Use a função de atualização do estado para garantir que você esteja atualizando
-    // com base no estado anterior
-    setTweets((prevTweets) => [...prevTweets, tweet_dummy]);
-
-    if (apiResult) {
-      // Crie um novo array com o novo item e os itens existentes
-      const result = { text: apiResult, published_at: new Date().toLocaleString() };
-      const tweets = [...listTweets, result];
-
-      // Atualize o estado com a nova lista
-      setTweets(tweets);
-
-      // Outras ações após a adição do item à lista, se necessário
-    }
-  }, [apiResult]);
+    // Chame a função para buscar os dados
+    fetchDataFromApi();
+  }, []);
 
 
   return (
@@ -171,7 +167,7 @@ function Dashboard() {
       <Content style={{ marginTop: '64px' }}>
         <Container style={{ position: 'relative' }}>
           <div style={{ marginBottom: '20px' }}>
-            <Typography variant="h4">Ultimas Publicações</Typography>
+            <Typography variant="h4">Ultimos Tweets</Typography>
           </div>
           <TableContainer component={Paper}>
             <Table aria-label="simple table">
@@ -184,8 +180,8 @@ function Dashboard() {
               <TableBody>
                 {listTweets.map((tweet, index) => (
                   <TableRow key={index}>
-                    <TableCell>{tweet.text}</TableCell>
-                    <TableCell>{tweet.published_at}</TableCell>
+                    <TableCell>{tweet.attributes.text}</TableCell>
+                    <TableCell>{tweet.attributes.created}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
