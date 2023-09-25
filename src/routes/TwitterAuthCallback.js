@@ -11,15 +11,17 @@ const TwitterAuthCallback = () => {
 
   useEffect(() => {
     async function fetchData() {
-      try {
-        const accessToken = await ApiCall.getApiCallback({ code, state });
+      const accessToken = await ApiCall.getApiCallback({ code, state });
 
+      if (accessToken) {
         localStorage.setItem('accessTokenStorage', accessToken);
-
-        window.close();
-      } catch (error) {
-        console.error('Error fetching API callback:', error);
+      } else {
+        // TODO: MAPEAR RESPOSTA NA API PARA EXCESSO DE SOLICITACOES 429
+        // throw new Error(`Error fetching API callback: ${accessToken}`);
+        localStorage.setItem('accessTokenError', `Too many requests, please try again later!`);
       }
+
+      window.close();
     }
 
     if (code && state) {

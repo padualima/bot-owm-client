@@ -1,4 +1,4 @@
-import React, { useState }from 'react';
+import React, { useState, useEffect } from 'react';
 import { CssBaseline, Drawer, AppBar, Toolbar, List, Typography, ListItem, ListItemIcon, ListItemText, Container } from '@mui/material';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { styled, useTheme } from '@mui/system'; // Importe o useTheme
@@ -14,6 +14,7 @@ import CustomSelect from '../components/forms/CustomSelect';
 import Checkbox from '@mui/material/Checkbox';
 import TimePicker from '../components/forms/TimePicker';
 import DateInput from '../components/forms/DateInput';
+import ApiCall from '../services/ApiCall';
 
 const Root = styled('div')({
   display: 'flex',
@@ -70,6 +71,71 @@ function Dashboard() {
     setShowScheduleCheckbox(event.target.checked); // Mostrar o Select quando o checkbox for marcado
   };
 
+  // handle form
+  const [formData, setFormData] = useState(
+    {
+      location_name: ''
+    }
+  );
+
+  const [apiResult, setApiResult] = useState(null);
+
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+
+    // console.log(`Field name: ${name}, Field value: ${value}`);
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+
+    // console.log('Updated formData:', formData);
+  };
+
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    // Aqui você pode fazer a chamada à API e atualizar o estado com os resultados
+    try {
+      setIsModalOpen(false);
+
+      const token = localStorage.getItem('accessTokenStorage')
+      const tweet = await ApiCall.postCreateTweet({ token, formData });
+
+      setApiResult(tweet);
+    } catch (error) {
+      console.error('Erro ao chamar a API:', error);
+    }
+  };
+
+  const [listTweets, setTweets] = useState([]);
+
+  useEffect(() => {
+    // Se você quiser realizar alguma ação após a chamada à API, você pode fazer aqui
+    // Por exemplo, exibir uma mensagem de sucesso ou atualizar a lista de publicações
+    const tweet_dummy = {
+      text: "Tempo Atual em: Teresina, BR (15/09 às 22:40h)\n  🌙 30ºC e céu limpo",
+      published_at: new Date().toLocaleString()
+    };
+
+    // Use a função de atualização do estado para garantir que você esteja atualizando
+    // com base no estado anterior
+    setTweets((prevTweets) => [...prevTweets, tweet_dummy]);
+
+    if (apiResult) {
+      // Crie um novo array com o novo item e os itens existentes
+      const result = { text: apiResult, published_at: new Date().toLocaleString() };
+      const tweets = [...listTweets, result];
+
+      // Atualize o estado com a nova lista
+      setTweets(tweets);
+
+      // Outras ações após a adição do item à lista, se necessário
+    }
+  }, [apiResult]);
+
+
   return (
     <Root>
       <CssBaseline />
@@ -116,30 +182,12 @@ function Dashboard() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow>
-                  <TableCell>John Doe</TableCell>
-                  <TableCell>30</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>25</TableCell>
-                </TableRow>
+                {listTweets.map((tweet, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{tweet.text}</TableCell>
+                    <TableCell>{tweet.published_at}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
@@ -154,8 +202,15 @@ function Dashboard() {
       <Modal open={isModalOpen} onClose={handleCloseModal}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, backgroundColor: 'white', padding: 20 }}>
           <Typography variant="h6">Nova Publicação</Typography>
-          <form>
-            <TextField style={{ margin: '5px 0' }} label="Localidade" fullWidth />
+          <form onSubmit={handleSubmit}>
+          <TextField
+            style={{ margin: '5px 0' }}
+            label="Localidade"
+            fullWidth
+            name="location_name"
+            value={formData.location_name} // Certifique-se de que esteja correto
+            onChange={handleFormChange} // Certifique-se de que esteja correto
+          />
 
             <div>
               <CustomSelect
@@ -216,7 +271,7 @@ function Dashboard() {
               </div>
             )}
 
-            <Button style={{ margin: '5px 0' }} variant="contained" color="primary" fullWidth>
+            <Button style={{ margin: '5px 0' }} variant="contained" color="primary" fullWidth type="submit">
               Salvar
             </Button>
           </form>

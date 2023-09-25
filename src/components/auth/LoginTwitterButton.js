@@ -12,15 +12,22 @@ function LoginTwitterButton() {
       window.open(oauthUrl, '_blank', 'width=600, height=600');
 
       localStorage.removeItem('accessTokenStorage');
+      localStorage.removeItem('accessTokenError');
 
       const checkAuthenticationCompletion = setInterval(() => {
         const accessTokenStorage = localStorage.getItem('accessTokenStorage');
+        const accessTokenError = localStorage.getItem('accessTokenError');
 
         if (accessTokenStorage) {
           clearInterval(checkAuthenticationCompletion);
 
           window.location.href = `/dashboard`;
-        }
+        } else if (accessTokenError) {
+          clearInterval(checkAuthenticationCompletion);
+
+          throw new Error(accessTokenError);
+        };
+
       }, 1000);
     } catch (error) {
       console.error('Error handling Twitter login:', error);
